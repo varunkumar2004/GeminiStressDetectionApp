@@ -4,10 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.varunkumar.geminiapi.presentation.ChatScreen
+import com.varunkumar.geminiapi.presentation.Navigation
+import com.varunkumar.geminiapi.presentation.screens.ChatScreen
 import com.varunkumar.geminiapi.ui.theme.GeminiApiTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -17,10 +16,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             GeminiApiTheme {
-                ChatScreen(
-                    modifier = Modifier
-                    .fillMaxSize()
-                )
+                Navigation(modifier = Modifier.fillMaxSize())
             }
         }
     }

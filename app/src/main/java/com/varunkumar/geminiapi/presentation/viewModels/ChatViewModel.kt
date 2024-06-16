@@ -1,4 +1,4 @@
-package com.varunkumar.geminiapi.presentation
+package com.varunkumar.geminiapi.presentation.viewModels
 
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
@@ -6,6 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
+import com.varunkumar.geminiapi.model.ChatMessage
+import com.varunkumar.geminiapi.presentation.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -25,7 +27,14 @@ class ChatViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     // TODO implement savedStateHandle
-    private val _state = MutableStateFlow(ChatState())
+    private val _state = MutableStateFlow(
+        ChatState(
+            message = savedStateHandle["message"] ?: ""
+        )
+    )
+
+    var scope = viewModelScope
+        private set
 
     private val _questions = mutableListOf(
         "Do I feel constantly on edge or overwhelmed?",
@@ -40,47 +49,66 @@ class ChatViewModel @Inject constructor(
         "Are there any support groups available for people dealing with similar stressors?"
     )
 
-    private val _message = MutableStateFlow("")
-
     val state = _state.flatMapLatest { state ->
-        Log.d("ChatViewModel", "state: ${state.message}")
         _state.update {
             it.copy(
                 questions = _questions.filter { items ->
-                    items.contains(state.message)
+                    items.contains(it.message)
                 }
             )
         }
         _state
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), ChatState())
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), ChatState())
 
     fun onMessageChange(newMessage: String) {
         _state.update { it.copy(message = newMessage) }
+        savedStateHandle["message"] = newMessage
     }
 
     fun sendPrompt() {
+        val message = _state.value.message
+
         _state.update {
             it.copy(
-                uiState = UiState.Loading
+                uiState = UiState.Loading,
+                message = "",
+                messages = it.messages + ChatMessage(data = message, isBot = false)
             )
         }
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val response = generativeModel.generateContent(
-                    content {
-                        text(_message.value)
-                    }
-                )
+                val response = generativeModel
+                    .generateContent(
+                        content {
+                            text(message)
+                        }
+                    )
 
                 response.text?.let { outputContent ->
+                    Log.d("ChatViewModel", "outputContent: $outputContent")
                     _state.update {
-                        it.copy(uiState = UiState.Success(outputContent))
+                        it.copy(
+                            messages = it.messages + ChatMessage(
+                                data = outputContent,
+                                isBot = true
+                            ),
+                            uiState = UiState.Success(outputContent)
+                        )
                     }
                 }
             } catch (e: Exception) {
+                val errorMessage = e.localizedMessage ?: "There was Some Error"
+
                 _state.update {
-                    it.copy(uiState = UiState.Error(e.localizedMessage ?: "There was Some Error"))
+                    it.copy(
+                        messages = it.messages + ChatMessage(
+                            data = errorMessage,
+                            isBot = true,
+                            isError = true
+                        ),
+                        uiState = UiState.Error(errorMessage)
+                    )
                 }
             }
         }
@@ -90,5 +118,8 @@ class ChatViewModel @Inject constructor(
 data class ChatState(
     val message: String = "",
     val questions: List<String> = emptyList(),
-    val uiState: UiState = UiState.Initial
+    val uiState: UiState = UiState.Initial,
+    val messages: List<ChatMessage> = listOf(
+        ChatMessage(data = "Hello! How can i help you?", isBot = true)
+    )
 )
