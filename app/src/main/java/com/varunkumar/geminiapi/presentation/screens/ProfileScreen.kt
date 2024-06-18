@@ -16,7 +16,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.outlined.DirectionsRun
 import androidx.compose.material.icons.outlined.LineWeight
 import androidx.compose.material.icons.outlined.LocalFireDepartment
@@ -25,9 +25,12 @@ import androidx.compose.material.icons.outlined.NightlightRound
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -43,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -52,6 +56,7 @@ import com.varunkumar.geminiapi.model.Metric
 import com.varunkumar.geminiapi.presentation.Routes
 import com.varunkumar.geminiapi.ui.theme.primary
 import com.varunkumar.geminiapi.ui.theme.primarySecondary
+import com.varunkumar.geminiapi.ui.theme.secondary
 import com.varunkumar.geminiapi.ui.theme.tertiary
 import com.varunkumar.geminiapi.utils.generateRandomColor
 
@@ -73,18 +78,16 @@ fun ProfileScreen(
     )
 
     Scaffold(
+        modifier = modifier,
         containerColor = tertiary,
         topBar = {
-            Column {
-                TopAppBar(
-                    title = { Text(text = "Summary", fontWeight = FontWeight.Bold) },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent,
-                        titleContentColor = primary
-                    )
+            TopAppBar(
+                title = { Text(text = "Summary", fontWeight = FontWeight.Bold) },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    titleContentColor = primary
                 )
-                HorizontalDivider()
-            }
+            )
         },
         bottomBar = {
             Column {
@@ -96,33 +99,42 @@ fun ProfileScreen(
         Column(
             modifier = fModifier
                 .padding(it)
-                .padding(20.dp),
+                .padding(horizontal = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Row(
                 modifier = fModifier,
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Image(
-                    modifier = Modifier.size(80.dp),
-                    painter = painterResource(id = R.drawable.squiggle),
-                    contentDescription = null
-                )
-                Spacer(modifier = Modifier.width(20.dp))
-                Column {
-                    Text(
-                        text = "Good Morning!",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = primarySecondary
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Image(
+                        modifier = Modifier.size(80.dp),
+                        painter = painterResource(id = R.drawable.squiggle),
+                        contentDescription = null
                     )
+                    Spacer(modifier = Modifier.width(20.dp))
+                    Column {
+                        Text(
+                            text = "Good Morning!",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = primarySecondary
+                        )
 
-                    Text(
-                        text = "Varun Kumar",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = primary
-                    )
+                        Text(
+                            text = "Varun Kumar",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = primary
+                        )
+                    }
+                }
+
+                IconButton(onClick = { navController.navigate(Routes.Login.route) }) {
+                    Icon(imageVector = Icons.Default.Logout, contentDescription = null)
                 }
             }
 
@@ -155,11 +167,13 @@ fun ProfileScreen(
                 }
             }
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(imageVector = Icons.Default.ErrorOutline, contentDescription = null)
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "All Data is Store Locally.")
-            }
+            Text(
+                modifier = modifier,
+                color = primary,
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Center,
+                text = "All Data is Stored Locally."
+            )
         }
     }
 }
@@ -231,6 +245,14 @@ fun BottomNavigation(
     navController: NavHostController,
     selectedItem: Routes
 ) {
+    val selectedColor: (route: Routes) -> Color = { route ->
+        if (route == selectedItem) {
+            primary
+        } else {
+            primarySecondary
+        }
+    }
+
     NavigationBar(
         modifier = modifier,
         containerColor = tertiary,
@@ -238,6 +260,17 @@ fun BottomNavigation(
     ) {
         NavigationBarItem(
             selected = selectedItem == Routes.Home,
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = secondary,
+                unselectedIconColor = primarySecondary,
+                indicatorColor = Color.Transparent
+            ),
+            label = {
+                Text(
+                    text = Routes.Home.title,
+                    color = if (selectedItem == Routes.Home) secondary else primarySecondary
+                )
+            },
             onClick = { navController.navigate(Routes.Home.route) },
             icon = {
                 Icon(
@@ -249,6 +282,17 @@ fun BottomNavigation(
         NavigationBarItem(
             selected = selectedItem == Routes.Stats,
             onClick = { navController.navigate(Routes.Stats.route) },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = secondary,
+                unselectedIconColor = primarySecondary,
+                indicatorColor = Color.Transparent
+            ),
+            label = {
+                Text(
+                    text = Routes.Stats.title,
+                    color = if (selectedItem == Routes.Stats) secondary else primarySecondary
+                )
+            },
             icon = {
                 Icon(
                     imageVector = Routes.Stats.icon,
@@ -259,6 +303,17 @@ fun BottomNavigation(
         NavigationBarItem(
             selected = selectedItem == Routes.Chat,
             onClick = { navController.navigate(Routes.Chat.route) },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = secondary,
+                unselectedIconColor = primarySecondary,
+                indicatorColor = Color.Transparent
+            ),
+            label = {
+                Text(
+                    text = Routes.Chat.title,
+                    color = if (selectedItem == Routes.Chat) secondary else primarySecondary
+                )
+            },
             icon = {
                 Icon(
                     imageVector = Routes.Chat.icon,

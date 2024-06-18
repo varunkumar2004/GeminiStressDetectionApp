@@ -33,9 +33,6 @@ class ChatViewModel @Inject constructor(
         )
     )
 
-    var scope = viewModelScope
-        private set
-
     private val _questions = mutableListOf(
         "Do I feel constantly on edge or overwhelmed?",
         "Have I been neglecting my sleep or healthy habits lately?",
@@ -53,10 +50,11 @@ class ChatViewModel @Inject constructor(
         _state.update {
             it.copy(
                 questions = _questions.filter { items ->
-                    items.contains(it.message)
+                    items.contains(state.message)
                 }
             )
         }
+        Log.d("state change", state.toString())
         _state
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), ChatState())
 
@@ -86,27 +84,22 @@ class ChatViewModel @Inject constructor(
                     )
 
                 response.text?.let { outputContent ->
-                    Log.d("ChatViewModel", "outputContent: $outputContent")
+                    val newMessage = ChatMessage(
+                        data = outputContent,
+                        isBot = true
+                    )
                     _state.update {
                         it.copy(
-                            messages = it.messages + ChatMessage(
-                                data = outputContent,
-                                isBot = true
-                            ),
-                            uiState = UiState.Success(outputContent)
+                            messages = it.messages + newMessage,
+                            uiState = UiState.Success(outputContent, newMessage.timestamp)
                         )
                     }
                 }
             } catch (e: Exception) {
-                val errorMessage = e.localizedMessage ?: "There was Some Error"
+                val errorMessage = e.localizedMessage
 
                 _state.update {
                     it.copy(
-                        messages = it.messages + ChatMessage(
-                            data = errorMessage,
-                            isBot = true,
-                            isError = true
-                        ),
                         uiState = UiState.Error(errorMessage)
                     )
                 }

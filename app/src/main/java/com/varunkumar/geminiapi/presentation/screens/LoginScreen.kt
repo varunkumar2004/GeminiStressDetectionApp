@@ -1,16 +1,20 @@
 package com.varunkumar.geminiapi.presentation.screens
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -36,10 +40,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.varunkumar.geminiapi.R
+import com.varunkumar.geminiapi.presentation.viewModels.LoginMode
 import com.varunkumar.geminiapi.presentation.viewModels.LoginViewModel
 import com.varunkumar.geminiapi.ui.theme.customButtonColors
 import com.varunkumar.geminiapi.ui.theme.customTextFieldColors
 import com.varunkumar.geminiapi.ui.theme.primarySecondary
+import com.varunkumar.geminiapi.ui.theme.secondary
 import com.varunkumar.geminiapi.ui.theme.tertiary
 
 @Composable
@@ -54,6 +60,10 @@ fun LoginScreen(
     val state = viewModel.state.collectAsState().value
     val shape = RoundedCornerShape(corner)
     val fModifier = Modifier.fillMaxWidth()
+    val isLogin = when (state.loginMode) {
+        is LoginMode.Login -> true
+        else -> false
+    }
 
     Box(
         modifier = modifier
@@ -75,7 +85,6 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(30.dp))
 
             Column(
-                verticalArrangement = Arrangement.spacedBy(5.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
@@ -85,6 +94,9 @@ fun LoginScreen(
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
+
+                Spacer(modifier = Modifier.height(5.dp))
+
                 OutlinedTextField(
                     shape = shape,
                     modifier = fModifier,
@@ -98,34 +110,52 @@ fun LoginScreen(
                             }
                         }
                     },
-                    label = { Text(text = "email") },
+                    placeholder = { Text(text = "email") },
                     singleLine = true,
                     maxLines = 1
                 )
-                OutlinedTextField(
-                    shape = shape,
-                    modifier = fModifier,
-                    value = state.name,
-                    colors = colors,
-                    onValueChange = { viewModel.onNameChange(it) },
-                    trailingIcon = {
-                        if (state.name.isNotEmpty() && state.name.isNotBlank()) {
-                            IconButton(onClick = { viewModel.onNameChange("") }) {
-                                Icon(imageVector = Icons.Default.Close, contentDescription = null)
-                            }
-                        }
-                    },
-                    label = { Text(text = "name") },
-                    singleLine = true,
-                    maxLines = 1
-                )
+
+
+                AnimatedVisibility(
+                    visible = isLogin
+                ) {
+                    Column {
+                        Spacer(modifier = Modifier.height(5.dp))
+
+                        OutlinedTextField(
+                            shape = shape,
+                            modifier = fModifier,
+                            value = state.name,
+                            colors = colors,
+                            onValueChange = { viewModel.onNameChange(it) },
+                            trailingIcon = {
+                                if (state.name.isNotEmpty() && state.name.isNotBlank()) {
+                                    IconButton(onClick = { viewModel.onNameChange("") }) {
+                                        Icon(
+                                            imageVector = Icons.Default.Close,
+                                            contentDescription = null
+                                        )
+                                    }
+                                }
+                            },
+                            placeholder = { Text(text = "name") },
+                            singleLine = true,
+                            maxLines = 1
+                        )
+
+                        Spacer(modifier = Modifier.height(5.dp))
+                    }
+                }
+
+                if (!isLogin) Spacer(modifier = Modifier.height(5.dp))
+
                 OutlinedTextField(
                     shape = shape,
                     modifier = fModifier,
                     value = state.password,
                     colors = colors,
                     onValueChange = { viewModel.onPasswordChange(it) },
-                    label = { Text(text = "password") },
+                    placeholder = { Text(text = "password") },
                     trailingIcon = {
                         IconButton(onClick = viewModel::onShowingPasswordChange) {
                             Icon(
@@ -157,15 +187,39 @@ fun LoginScreen(
         }
 
 
-        Text(
-            modifier = fModifier
-                .clickable {
-                    viewModel.onLoginModeChange()
-                },
-            textAlign = TextAlign.Center,
-            text = state.loginMode.messageForUser,
-            color = primarySecondary
-        )
+//            var text by animateValueAsState(
+//                targetValue = state.name,
+//                animationSpec = { tween(durationMillis = 500, easing = LinearEasing) }
+//            )
+
+        AnimatedContent(
+            targetState = state.loginMode,
+            label = "",
+        ) { mode ->
+            Row(
+                modifier = fModifier
+                    .clickable {
+                        viewModel.onLoginModeChange()
+                    },
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    textAlign = TextAlign.Center,
+                    text = mode.messageForUser,
+                    color = primarySecondary,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.width(5.dp))
+                Text(
+                    textAlign = TextAlign.Center,
+                    text = mode.title,
+                    color = secondary,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
     }
 }
 

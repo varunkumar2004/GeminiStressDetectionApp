@@ -42,9 +42,14 @@ class LoginViewModel @Inject constructor(
     }
 
     fun onLoginModeChange() {
-        when(_state.value.loginMode) {
-            is LoginMode.Login -> { _state.update { it.copy(loginMode = LoginMode.Register) } }
-            is LoginMode.Register -> { _state.update { it.copy(loginMode = LoginMode.Login) } }
+        when (_state.value.loginMode) {
+            is LoginMode.Login -> {
+                _state.update { it.copy(loginMode = LoginMode.Register) }
+            }
+
+            is LoginMode.Register -> {
+                _state.update { it.copy(loginMode = LoginMode.Login) }
+            }
         }
     }
 }
@@ -58,6 +63,6 @@ data class LoginState(
 )
 
 sealed class LoginMode(val title: String, val messageForUser: String) {
-    data object Login : LoginMode("Login", "New User? Register")
-    data object Register : LoginMode("Register", "Already Have An Account? Login")
+    data object Login : LoginMode("Register.", "New User?")
+    data object Register : LoginMode("Login.", "Already Have An Account?")
 }
