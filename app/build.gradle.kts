@@ -83,4 +83,12 @@ dependencies {
 
     //icons extended
     implementation("androidx.compose.material:material-icons-extended-android:1.6.8")
+
+    //compose animation
+    implementation("androidx.compose.animation:animation:1.6.8")
+
+    //retrofit
+    val retrofitVersion = "2.11.0"
+    implementation("com.squareup.retrofit2:retrofit:$retrofitVersion")
+    implementation("com.squareup.retrofit2:converter-gson:$retrofitVersion")
 }

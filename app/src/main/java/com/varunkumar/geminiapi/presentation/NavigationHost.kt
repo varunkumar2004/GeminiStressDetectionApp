@@ -23,9 +23,13 @@ fun Navigation(modifier: Modifier = Modifier) {
     val chatViewModel = hiltViewModel<ChatViewModel>()
     val statsViewModel = hiltViewModel<StatsViewModel>()
 
-    NavHost(navController = navController, startDestination = Routes.Stats.route) {
+    NavHost(navController = navController, startDestination = Routes.Home.route) {
         composable(Routes.Home.route) {
-            HomeScreen(navController = navController, viewModel = statsViewModel)
+            HomeScreen(
+                modifier = modifier,
+                navController = navController,
+                viewModel = statsViewModel
+            )
         }
 
         composable(Routes.Stats.route) {
