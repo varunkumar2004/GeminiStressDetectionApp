@@ -10,8 +10,9 @@ import androidx.navigation.compose.rememberNavController
 import com.varunkumar.geminiapi.presentation.screens.ChatScreen
 import com.varunkumar.geminiapi.presentation.screens.HomeScreen
 import com.varunkumar.geminiapi.presentation.screens.LoginScreen
-import com.varunkumar.geminiapi.presentation.screens.ProfileScreen
+import com.varunkumar.geminiapi.presentation.screens.DashboardScreen
 import com.varunkumar.geminiapi.presentation.screens.SliderScreen
+import com.varunkumar.geminiapi.presentation.viewModels.AppViewModel
 import com.varunkumar.geminiapi.presentation.viewModels.ChatViewModel
 import com.varunkumar.geminiapi.presentation.viewModels.LoginViewModel
 import com.varunkumar.geminiapi.presentation.viewModels.StatsViewModel
@@ -22,13 +23,15 @@ fun Navigation(modifier: Modifier = Modifier) {
     val loginViewModel = hiltViewModel<LoginViewModel>()
     val chatViewModel = hiltViewModel<ChatViewModel>()
     val statsViewModel = hiltViewModel<StatsViewModel>()
+    val appViewModel = hiltViewModel<AppViewModel>()
 
-    NavHost(navController = navController, startDestination = Routes.Home.route) {
+    NavHost(navController = navController, startDestination = Routes.Login.route) {
         composable(Routes.Home.route) {
             HomeScreen(
                 modifier = modifier,
                 navController = navController,
-                viewModel = statsViewModel
+                viewModel = statsViewModel,
+                appViewModel = appViewModel
             )
         }
 
@@ -49,15 +52,16 @@ fun Navigation(modifier: Modifier = Modifier) {
                 paddingValues = 30.dp,
                 viewModel = loginViewModel,
                 onLoginButtonClick = {
-                    navController.navigate(Routes.Profile.route)
+                    navController.navigate(Routes.Home.route)
                 }
             )
         }
 
         composable(Routes.Profile.route) {
-            ProfileScreen(
+            DashboardScreen(
                 modifier = modifier,
-                navController = navController
+                navController = navController,
+                appViewModel = appViewModel
             )
         }
 
@@ -66,9 +70,7 @@ fun Navigation(modifier: Modifier = Modifier) {
                 modifier = modifier,
                 viewModel = chatViewModel,
                 onBackButtonClick = {
-//                    navController.navigateUp()
-                    //TODO for time being
-                    navController.navigate(Routes.Profile.route)
+                    navController.navigateUp()
                 }
             )
         }

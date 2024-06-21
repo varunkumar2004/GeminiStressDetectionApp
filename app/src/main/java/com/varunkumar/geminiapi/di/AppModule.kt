@@ -1,5 +1,6 @@
 package com.varunkumar.geminiapi.di
 
+import android.content.Context
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.generationConfig
 import com.varunkumar.geminiapi.BuildConfig
@@ -8,7 +9,10 @@ import com.varunkumar.geminiapi.model.StressModelApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.android.scopes.ViewModelScoped
 import dagger.hilt.components.SingletonComponent
+import io.noties.markwon.Markwon
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
@@ -39,5 +43,11 @@ object AppModule {
                 maxOutputTokens = 8192
             }
         )
+    }
+
+    @Provides
+    @Singleton
+    fun provideMarkdown(@ApplicationContext context: Context): Markwon {
+        return Markwon.create(context)
     }
 }

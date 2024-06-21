@@ -16,31 +16,23 @@ val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
 
+// dark theme
+val darkPrimary = Color(0xff121212)
+val darkSecondary = Color(0xff222831)
+val darkTertiary = Color(0xff76ABAE)
+val darkSurface = Color(0xffEEEEEE)
+
+// light theme
+val lightPrimary = Color(0xFFF4F2F7)
+val lightSecondary = Color(0xFFE4E2E9)
+val lightTertiary = Color(0xFF72698A)
+val lightSurface = Color(0xff2A2438)
+
+
 //custom colors for the app
 val primary = Color(0xff361d32)
 val primarySecondary = Color(0xff543c52)
 val secondary = Color(0xfff55951)
 val secondaryTertiary = Color(0xffedd2cb)
-val tertiary = Color(0xfff1e8e6)
-
-@Composable
-fun customTextFieldColors(): TextFieldColors {
-    return TextFieldDefaults.colors(
-        focusedContainerColor = secondaryTertiary,
-        unfocusedContainerColor = secondaryTertiary,
-        unfocusedIndicatorColor = tertiary,
-        focusedIndicatorColor = primary,
-        focusedLabelColor = primary,
-        focusedTrailingIconColor = primary,
-        unfocusedTrailingIconColor = secondaryTertiary,
-        cursorColor = primarySecondary
-    )
-}
-
-@Composable
-fun customButtonColors(): ButtonColors {
-    return ButtonDefaults.buttonColors(
-        containerColor = secondary,
-        contentColor = tertiary
-    )
-}
+//val tertiary = Color(0xfff1e8e6)
+val tertiary = primary

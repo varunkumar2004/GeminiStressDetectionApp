@@ -2,10 +2,13 @@ package com.varunkumar.geminiapi.presentation.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,19 +28,16 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.varunkumar.geminiapi.presentation.HealthSensors
 import com.varunkumar.geminiapi.presentation.viewModels.StatsState
 import com.varunkumar.geminiapi.presentation.viewModels.StatsViewModel
 import com.varunkumar.geminiapi.ui.theme.primary
@@ -45,6 +45,7 @@ import com.varunkumar.geminiapi.ui.theme.primarySecondary
 import com.varunkumar.geminiapi.ui.theme.secondary
 import com.varunkumar.geminiapi.ui.theme.secondaryTertiary
 import com.varunkumar.geminiapi.ui.theme.tertiary
+import com.varunkumar.geminiapi.utils.Result
 import com.varunkumar.geminiapi.utils.getScreenResolutionDp
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -98,15 +99,49 @@ fun SliderScreen(
             )
 
             Column(
-                modifier = fModifier
-                    .rotate(-90f)
-                    .height(maxWidth - 40.dp),
-                verticalArrangement = Arrangement.SpaceAround
+                modifier = fModifier,
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                CustomSlider(state = state)
-                CustomSlider(state = state)
-                CustomSlider(state = state)
-                CustomSlider(state = state)
+                CustomSlider(
+                    modifier = fModifier,
+                    state = state,
+                    sensor = HealthSensors.HeartRateSensors,
+                    viewModel = viewModel
+                )
+                CustomSlider(
+                    modifier = fModifier,
+                    state = state,
+                    sensor = HealthSensors.SnoringRateSensors,
+                    viewModel = viewModel
+                )
+                CustomSlider(
+                    modifier = fModifier,
+                    state = state,
+                    sensor = HealthSensors.HoursOfSleepSensors,
+                    viewModel = viewModel
+                )
+                CustomSlider(
+                    modifier = fModifier,
+                    state = state,
+                    sensor = HealthSensors.RespirationRateSensors,
+                    viewModel = viewModel
+                )
+            }
+
+
+            state.responseResult?.let {
+                Column(
+                    modifier = fModifier,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = if (state.responseResult is Result.Loading) {
+                            "Loading..."
+                        } else {
+                            state.responseResult.data ?: ""
+                        }
+                    )
+                }
             }
 
             Button(
@@ -116,7 +151,9 @@ fun SliderScreen(
                 ),
                 modifier = fModifier
                     .height(TextFieldDefaults.MinHeight),
-                onClick = { viewModel.updateSensorValue() }
+                onClick = viewModel::predictStress.also {
+                    onSaveButtonClick()
+                }
             ) {
                 Text(
                     text = "Save",
@@ -133,25 +170,36 @@ fun SliderScreen(
 fun CustomSlider(
     modifier: Modifier = Modifier,
     steps: Int? = null,
+    radius: Dp = 40.dp,
+    viewModel: StatsViewModel,
     height: Dp = TextFieldDefaults.MinHeight,
-    state: StatsState
+    state: StatsState,
+    sensor: HealthSensors
 ) {
-    var sliderPosition by remember { mutableFloatStateOf(50f) }
-    val radius = RoundedCornerShape(40.dp)
+    val sliderPosition: Float = when (sensor) {
+        is HealthSensors.SnoringRateSensors -> state.snoringRate
+        is HealthSensors.RespirationRateSensors -> state.respirationRate
+        is HealthSensors.BloodOxygenSensors -> state.bloodOxygen
+        is HealthSensors.HeartRateSensors -> state.heartRate
+        is HealthSensors.HoursOfSleepSensors -> state.sleep
+        is HealthSensors.TemperatureSensors -> state.temperature
+    }
 
     Column(
         modifier = modifier
-            .clip(radius)
+            .clip(RoundedCornerShape(radius))
             .background(secondaryTertiary)
-            .padding(5.dp)
+            .padding(2.dp),
     ) {
         Slider(
-            modifier = Modifier
-                .width(1000.dp),
+            modifier = modifier,
+            //TODO do this width dynamically
             steps = steps ?: 0,
             value = sliderPosition,
-            onValueChange = { sliderPosition = it },
-            valueRange = 0f..100f,
+            onValueChange = { value ->
+                viewModel.onSliderChange(value, sensor)
+            },
+            valueRange = sensor.low..sensor.high,
             colors = SliderDefaults.colors(
                 activeTrackColor = Color.Transparent,
                 inactiveTrackColor = Color.Transparent
@@ -159,8 +207,7 @@ fun CustomSlider(
             thumb = {
                 ElevatedCard(
                     modifier = Modifier
-                        .height(height)
-                        .width(height + 20.dp),
+                        .size(height),
                     shape = CircleShape,
                     elevation = CardDefaults.cardElevation(
                         defaultElevation = 10.dp
@@ -169,14 +216,12 @@ fun CustomSlider(
                         containerColor = primarySecondary
                     )
                 ) {
-//                    Box(
-//                        modifier = Modifier
-//                            .height(height)
-//                            .width(height + 20.dp),
-//                        contentAlignment = Alignment.Center
-//                    ) {
-//                        Text(text = "98.6 C", color = Color.White)
-//                    }
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = sliderPosition.toInt().toString(), color = Color.White)
+                    }
                 }
             },
             track = {
@@ -184,8 +229,8 @@ fun CustomSlider(
                     modifier = Modifier.width(1000.dp),
                 ) {
                     Text(
-                        text = "Temperature",
-                        color = secondaryTertiary,
+                        text = sensor.label,
+                        color = secondary,
                         textAlign = TextAlign.Justify,
                         fontWeight = FontWeight.Bold
                     )

@@ -16,7 +16,7 @@ class LoginViewModel @Inject constructor(
             name = savedStateHandle["name"] ?: "",
             email = savedStateHandle["email"] ?: "",
             password = savedStateHandle["password"] ?: "",
-            loginMode = LoginMode.Register
+            mode = ScreenMode.Login
         )
     )
 
@@ -42,13 +42,13 @@ class LoginViewModel @Inject constructor(
     }
 
     fun onLoginModeChange() {
-        when (_state.value.loginMode) {
-            is LoginMode.Login -> {
-                _state.update { it.copy(loginMode = LoginMode.Register) }
+        when (_state.value.mode) {
+            is ScreenMode.Login -> {
+                _state.update { it.copy(mode = ScreenMode.Register) }
             }
 
-            is LoginMode.Register -> {
-                _state.update { it.copy(loginMode = LoginMode.Login) }
+            is ScreenMode.Register -> {
+                _state.update { it.copy(mode = ScreenMode.Login) }
             }
         }
     }
@@ -59,10 +59,10 @@ data class LoginState(
     val email: String,
     val password: String,
     val showingPassword: Boolean = false,
-    val loginMode: LoginMode
+    val mode: ScreenMode
 )
 
-sealed class LoginMode(val title: String, val messageForUser: String) {
-    data object Login : LoginMode("Register.", "New User?")
-    data object Register : LoginMode("Login.", "Already Have An Account?")
+sealed class ScreenMode(val title: String, val messageForUser: String, val highLight: String) {
+    data object Login : ScreenMode("Login.", "New User?", "Register.")
+    data object Register : ScreenMode("Register.", "Already Have An Account?", "Login.")
 }

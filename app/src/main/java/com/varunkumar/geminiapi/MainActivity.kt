@@ -10,15 +10,22 @@ import com.varunkumar.geminiapi.presentation.Navigation
 import com.varunkumar.geminiapi.presentation.screens.ChatScreen
 import com.varunkumar.geminiapi.ui.theme.GeminiApiTheme
 import dagger.hilt.android.AndroidEntryPoint
+import io.noties.markwon.Markwon
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
+        //TODO enable this later
+//        enableEdgeToEdge()
+
         setContent {
             GeminiApiTheme {
-                Navigation(modifier = Modifier.fillMaxSize())
+                Navigation(
+                    modifier = Modifier.fillMaxSize()
+                )
             }
         }
     }

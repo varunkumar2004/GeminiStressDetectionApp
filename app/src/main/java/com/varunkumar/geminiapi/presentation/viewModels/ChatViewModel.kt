@@ -1,5 +1,6 @@
 package com.varunkumar.geminiapi.presentation.viewModels
 
+import android.text.Spanned
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -9,6 +10,7 @@ import com.google.ai.client.generativeai.type.content
 import com.varunkumar.geminiapi.model.ChatMessage
 import com.varunkumar.geminiapi.presentation.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.noties.markwon.Markwon
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,12 +26,13 @@ import javax.inject.Inject
 @HiltViewModel
 class ChatViewModel @Inject constructor(
     private val generativeModel: GenerativeModel,
+    private val markwon: Markwon,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     // TODO implement savedStateHandle
     private val _state = MutableStateFlow(
         ChatState(
-            message = savedStateHandle["message"] ?: ""
+            message = savedStateHandle["message"] ?: "stan by eminem"
         )
     )
 
@@ -54,9 +57,12 @@ class ChatViewModel @Inject constructor(
                 }
             )
         }
-        Log.d("state change", state.toString())
         _state
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), ChatState())
+
+    fun createSpannedText(input: String) : Spanned {
+        return markwon.toMarkdown(input)
+    }
 
     fun onMessageChange(newMessage: String) {
         _state.update { it.copy(message = newMessage) }
@@ -69,10 +75,11 @@ class ChatViewModel @Inject constructor(
         _state.update {
             it.copy(
                 uiState = UiState.Loading,
-                message = "",
                 messages = it.messages + ChatMessage(data = message, isBot = false)
             )
         }
+
+        onMessageChange("")
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -88,6 +95,7 @@ class ChatViewModel @Inject constructor(
                         data = outputContent,
                         isBot = true
                     )
+
                     _state.update {
                         it.copy(
                             messages = it.messages + newMessage,

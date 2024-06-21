@@ -91,4 +91,8 @@ dependencies {
     val retrofitVersion = "2.11.0"
     implementation("com.squareup.retrofit2:retrofit:$retrofitVersion")
     implementation("com.squareup.retrofit2:converter-gson:$retrofitVersion")
+
+    //markdown library for chatbot response format
+    val markwonVersion = "4.6.2"
+    implementation("io.noties.markwon:core:$markwonVersion")
 }
