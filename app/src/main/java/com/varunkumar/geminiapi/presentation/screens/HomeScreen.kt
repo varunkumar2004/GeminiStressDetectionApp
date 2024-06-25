@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.varunkumar.geminiapi.presentation.Routes
 import com.varunkumar.geminiapi.presentation.viewModels.AppViewModel
-import com.varunkumar.geminiapi.presentation.viewModels.StatsViewModel
+import com.varunkumar.geminiapi.presentation.viewModels.SenseViewModel
 import com.varunkumar.geminiapi.ui.theme.GeminiApiTheme
 import com.varunkumar.geminiapi.ui.theme.secondary
 
@@ -36,7 +36,7 @@ import com.varunkumar.geminiapi.ui.theme.secondary
 fun HomeScreen(
     modifier: Modifier = Modifier,
     navController: NavHostController,
-    viewModel: StatsViewModel,
+    viewModel: SenseViewModel,
     appViewModel: AppViewModel
 ) {
 
@@ -56,7 +56,7 @@ fun HomeScreen(
                 verticalArrangement = Arrangement.Center
             ) {
                 ZoomInOutBoxAnimation {
-                    navController.navigate(Routes.Stats.route)
+                    navController.navigate(Routes.Welcome.route)
                 }
             }
         }

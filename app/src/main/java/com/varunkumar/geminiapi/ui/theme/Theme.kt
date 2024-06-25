@@ -47,11 +47,12 @@ fun GeminiApiTheme(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun customTopAppBar(modifier: Modifier = Modifier): TopAppBarColors {
+fun customTopAppBarColors(modifier: Modifier = Modifier): TopAppBarColors {
     return TopAppBarDefaults.topAppBarColors(
         containerColor = MaterialTheme.colorScheme.secondary,
         titleContentColor = MaterialTheme.colorScheme.surface,
-        navigationIconContentColor = MaterialTheme.colorScheme.surface
+        navigationIconContentColor = MaterialTheme.colorScheme.surface,
+        scrolledContainerColor = MaterialTheme.colorScheme.secondary,
     )
 }
 

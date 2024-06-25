@@ -3,9 +3,7 @@ package com.varunkumar.geminiapi.presentation.screens
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,12 +17,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
-import androidx.compose.material3.Button
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
@@ -42,41 +42,78 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.varunkumar.geminiapi.R
-import com.varunkumar.geminiapi.presentation.viewModels.ScreenMode
 import com.varunkumar.geminiapi.presentation.viewModels.LoginViewModel
-import com.varunkumar.geminiapi.ui.theme.customTextFieldColors
+import com.varunkumar.geminiapi.presentation.viewModels.ScreenMode
 
 @Composable
 fun LoginScreen(
     modifier: Modifier = Modifier,
-    paddingValues: Dp = 20.dp,
     viewModel: LoginViewModel,
     onLoginButtonClick: () -> Unit
 ) {
-    val textFieldColors = customTextFieldColors()
-    val buttonColors = ButtonDefaults.buttonColors(
-        containerColor = MaterialTheme.colorScheme.surface,
-        contentColor = MaterialTheme.colorScheme.primary
+    val textFieldColors = TextFieldDefaults.colors(
+        focusedContainerColor = Color.Transparent,
+        unfocusedContainerColor = Color.Transparent,
+        focusedIndicatorColor = Color(0xFF527DAF),
+        unfocusedIndicatorColor = Color.Gray,
+        focusedTrailingIconColor = Color(0xFF527DAF),
+        unfocusedTrailingIconColor = Color.Transparent,
+        cursorColor = Color.Black
     )
 
     val state = viewModel.state.collectAsState().value
-    val shape = RoundedCornerShape(20.dp)
+    val shape = RoundedCornerShape(10.dp)
     val fModifier = Modifier.fillMaxWidth()
+
     val isRegister = when (state.mode) {
         is ScreenMode.Register -> true
         else -> false
     }
 
-    Box(
-        modifier = modifier
-            .background(MaterialTheme.colorScheme.primary)
-            .padding(paddingValues),
-        contentAlignment = Alignment.BottomStart
+    val bgColor = Color(0xffE4EBFB)
+
+    Scaffold(
+        containerColor = bgColor,
+        bottomBar = {
+            BottomAppBar(
+                containerColor = Color.Transparent
+            ) {
+                AnimatedContent(
+                    targetState = state.mode,
+                    label = "",
+                ) { mode ->
+                    TextButton(
+                        modifier = fModifier,
+                        onClick = viewModel::onLoginModeChange
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = mode.messageForUser,
+                                color = Color.Black,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Spacer(modifier = Modifier.width(5.dp))
+                            Text(
+                                text = mode.highLight,
+                                color = Color(0xFF527DAF),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+        }
     ) {
         Column(
-            modifier = modifier,
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = modifier
+                .padding(it)
+                .padding(30.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             Image(
                 modifier = Modifier.size(100.dp),
@@ -87,7 +124,8 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(30.dp))
 
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
                     text = "Enter Details",
@@ -96,8 +134,6 @@ fun LoginScreen(
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
-
-                Spacer(modifier = Modifier.height(5.dp))
 
                 OutlinedTextField(
                     shape = shape,
@@ -120,35 +156,27 @@ fun LoginScreen(
                 AnimatedVisibility(
                     visible = isRegister
                 ) {
-                    Column {
-                        Spacer(modifier = Modifier.height(5.dp))
-
-                        OutlinedTextField(
-                            shape = shape,
-                            modifier = fModifier,
-                            value = state.name,
-                            colors = textFieldColors,
-                            onValueChange = { viewModel.onNameChange(it) },
-                            trailingIcon = {
-                                if (state.name.isNotEmpty() && state.name.isNotBlank()) {
-                                    IconButton(onClick = { viewModel.onNameChange("") }) {
-                                        Icon(
-                                            imageVector = Icons.Default.Close,
-                                            contentDescription = null
-                                        )
-                                    }
+                    OutlinedTextField(
+                        shape = shape,
+                        modifier = fModifier,
+                        value = state.name,
+                        colors = textFieldColors,
+                        onValueChange = { viewModel.onNameChange(it) },
+                        trailingIcon = {
+                            if (state.name.isNotEmpty() && state.name.isNotBlank()) {
+                                IconButton(onClick = { viewModel.onNameChange("") }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = null
+                                    )
                                 }
-                            },
-                            placeholder = { Text(text = "name") },
-                            singleLine = true,
-                            maxLines = 1
-                        )
-
-                        Spacer(modifier = Modifier.height(5.dp))
-                    }
+                            }
+                        },
+                        placeholder = { Text(text = "name") },
+                        singleLine = true,
+                        maxLines = 1
+                    )
                 }
-
-                if (!isRegister) Spacer(modifier = Modifier.height(5.dp))
 
                 OutlinedTextField(
                     shape = shape,
@@ -173,47 +201,19 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            Button(
-                colors = buttonColors,
+            OutlinedButton(
                 modifier = fModifier
                     .height(TextFieldDefaults.MinHeight),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = Color.Black,
+                ),
                 onClick = { onLoginButtonClick() }
             ) {
                 Text(
                     text = state.mode.title,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.bodyLarge
                 )
-            }
-        }
-
-        AnimatedContent(
-            targetState = state.mode,
-            label = "",
-        ) { mode ->
-            TextButton(
-                modifier = fModifier,
-                onClick = viewModel::onLoginModeChange
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        textAlign = TextAlign.Center,
-                        text = mode.messageForUser,
-                        color = MaterialTheme.colorScheme.tertiary,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Spacer(modifier = Modifier.width(5.dp))
-                    Text(
-                        textAlign = TextAlign.Center,
-                        text = mode.highLight,
-                        color = MaterialTheme.colorScheme.surface,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
             }
         }
     }

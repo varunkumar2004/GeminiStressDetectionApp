@@ -1,6 +1,6 @@
 package com.varunkumar.geminiapi.presentation.screens
 
-import android.text.Spanned
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,14 +24,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Send
-import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -41,19 +45,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.varunkumar.geminiapi.R
 import com.varunkumar.geminiapi.model.ChatMessage
 import com.varunkumar.geminiapi.presentation.UiState
 import com.varunkumar.geminiapi.presentation.viewModels.ChatState
 import com.varunkumar.geminiapi.presentation.viewModels.ChatViewModel
-import com.varunkumar.geminiapi.ui.theme.customTextFieldColors
-import com.varunkumar.geminiapi.ui.theme.customTopAppBar
 import com.varunkumar.geminiapi.ui.theme.secondary
 import com.varunkumar.geminiapi.utils.appendSuspend
 import com.varunkumar.geminiapi.utils.formatTimeStamp
@@ -71,6 +77,10 @@ fun ChatScreen(
     val focusRequester = remember { FocusRequester() }
     val fModifier = Modifier.fillMaxWidth()
     val keyboardController = LocalSoftwareKeyboardController.current
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+
+    val bgColor = Color(0xffF7DFF8)
+    val dividerColor = Color(0xFFD7D2DD)
 
     LaunchedEffect(state) {
         if (state.messages.isNotEmpty()) {
@@ -79,47 +89,61 @@ fun ChatScreen(
     }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.primary,
-        modifier = modifier,
+        modifier = modifier
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        containerColor = bgColor,
         topBar = {
-            CenterAlignedTopAppBar(
-                colors = customTopAppBar(),
-                navigationIcon = {
-                    IconButton(onClick = { onBackButtonClick() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                            contentDescription = null
-                        )
+            Column {
+                TopAppBar(
+                    scrollBehavior = scrollBehavior,
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        titleContentColor = Color.Black,
+                        scrolledContainerColor = Color.Transparent
+                    ),
+                    navigationIcon = {
+                        IconButton(onClick = { onBackButtonClick() }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                                contentDescription = null
+                            )
+                        }
+                    },
+                    title = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.squiggle),
+                                modifier = Modifier.size(30.dp),
+                                contentDescription = null
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(text = "Gemini")
+                        }
                     }
-                },
-                title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-//                        Image(
-//                            painter = painterResource(id = R.drawable.squiggle),
-//                            modifier = Modifier.size(30.dp),
-//                            contentDescription = null
-//                        )
-//                        Spacer(modifier = Modifier.width(10.dp))
-                        Text(text = "Gemini")
-                    }
-                }
-            )
+                )
+
+                HorizontalDivider(color = dividerColor)
+            }
         },
         bottomBar = {
-            Column(
-                modifier = fModifier
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = 20.dp)
-                    .clip(shape),
-            ) {
+            Column {
+                HorizontalDivider(color = dividerColor)
+
                 OutlinedTextField(
                     modifier = fModifier
                         .focusRequester(focusRequester),
                     shape = shape,
                     value = state.message,
-                    colors = customTextFieldColors(),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedTrailingIconColor = Color.Black,
+                        cursorColor = Color.Black
+                    ),
                     placeholder = { Text("enter message") },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                     keyboardActions = KeyboardActions {
@@ -136,12 +160,14 @@ fun ChatScreen(
                                 focusRequester.freeFocus()
                             }
                         ) {
-                            Icon(imageVector = Icons.Default.Send, contentDescription = null)
+                            Icon(
+                                imageVector = Icons.Default.Send,
+                                contentDescription = null
+                            )
                         }
                     },
                     textStyle = MaterialTheme.typography.bodyMedium
                 )
-            }
 
 //            BottomAppBar(
 //                modifier = fModifier,
@@ -204,38 +230,32 @@ fun ChatScreen(
 //                    }
 //                }
 //
+            }
         }
     ) {
         Column(
             modifier = fModifier
                 .padding(it)
-                .padding(horizontal = 20.dp)
+                .padding(horizontal = 16.dp)
         ) {
             LazyColumn(
                 modifier = Modifier,
                 state = listState,
             ) {
                 itemsIndexed(state.messages) { index, msg ->
-                    if (index == 0) Spacer(modifier = Modifier.height(5.dp))
-                    val isPrevSame =
-                        index != 0 && state.messages[index - 1].isBot && state.messages[index].isBot
                     val height = 5.dp
+                    val msgColor = if (msg.isBot) Color(0xff4A4458) else Color(0xff3B383E)
 
-//                    AnimatedVisibility(
-//                        visible = true, // Item is always visible, but we use this for animation
-//                        enter = slideInHorizontally(
-//                            animationSpec = tween(durationMillis = 500),
-//                        ) + fadeIn(
-//                            animationSpec = tween(durationMillis = 500)
-//                        )
-//                    ) {
+                    if (index == 0) Spacer(modifier = Modifier.height(10.dp))
+
                     ChatItemMessage(
                         modifier = fModifier,
                         message = msg,
                         index = index,
-                        viewModel = viewModel
+                        viewModel = viewModel,
+                        color = msgColor
                     )
-//                    }
+
                     Spacer(modifier = Modifier.height(height))
                 }
 
@@ -253,15 +273,16 @@ fun ChatScreen(
 fun ChatItemMessage(
     modifier: Modifier = Modifier,
     message: ChatMessage,
+    color: Color,
     index: Int,
     viewModel: ChatViewModel
 ) {
     val maxWidth = (LocalConfiguration.current.screenWidthDp).dp
-    val textColor = if (message.isBot) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.primary
+
     val textModifier = Modifier
         .clip(RoundedCornerShape(30.dp))
         .widthIn(max = maxWidth * 0.75f)
-        .background(if (message.isBot) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.tertiary)
+        .background(color)
         .padding(15.dp, 10.dp)
 
     Box(
@@ -279,14 +300,14 @@ fun ChatItemMessage(
                     appendSuspend(spanned = spanned)
                 },
                 style = MaterialTheme.typography.bodyMedium,
-                color = textColor
+                color = Color.White
             )
         } else {
             Text(
                 modifier = textModifier,
                 text = message.data,
                 style = MaterialTheme.typography.bodyMedium,
-                color = textColor
+                color = Color.White
             )
         }
     }
