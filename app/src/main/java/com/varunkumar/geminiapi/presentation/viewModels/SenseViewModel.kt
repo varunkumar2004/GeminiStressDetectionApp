@@ -1,6 +1,8 @@
 package com.varunkumar.geminiapi.presentation.viewModels
 
+import android.net.Uri
 import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.varunkumar.geminiapi.model.StressModelApi
@@ -8,18 +10,33 @@ import com.varunkumar.geminiapi.presentation.HealthSensors
 import com.varunkumar.geminiapi.utils.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class StatsViewModel @Inject constructor(
-    private val stressModelApi: StressModelApi
+class SenseViewModel @Inject constructor(
+    private val stressModelApi: StressModelApi,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _state = MutableStateFlow(
-        StatsState()
+        StatsState(
+            imageUri = savedStateHandle.get<Uri>("imageUri")
+        )
     )
-    val state = _state
+    val state = _state.asStateFlow()
+
+    fun onChangeImageUri(newUri: Uri?) {
+        _state.update { it.copy(imageUri = newUri) }
+        savedStateHandle["imageUri"] = newUri
+    }
+
+    fun onScreenChange() {
+        _state.update {
+            it.copy(isImageScreen = !it.isImageScreen)
+        }
+    }
 
     fun onSliderChange(newValue: Float, healthSensor: HealthSensors) {
         when (healthSensor) {
@@ -87,12 +104,15 @@ class StatsViewModel @Inject constructor(
 }
 
 data class StatsState(
+    // TODO implement type safe logic here for result
+    val imageUri: Uri? = null,
+    val isImageScreen: Boolean = true,
     val responseResult: Result<String>? = null,
-    val snoringRate: Float = 0f,
-    val respirationRate: Float = 0f,
-    val temperature: Float = 0f,
-    val bloodOxygen: Float = 0f,
-    val sleep: Float = 0f,
-    val heartRate: Float = 0f
+    val snoringRate: Float = 50f,
+    val respirationRate: Float = 50f,
+    val temperature: Float = 50f,
+    val bloodOxygen: Float = 50f,
+    val sleep: Float = 50f,
+    val heartRate: Float = 50f
 )
 

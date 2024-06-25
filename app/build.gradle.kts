@@ -95,4 +95,16 @@ dependencies {
     //markdown library for chatbot response format
     val markwonVersion = "4.6.2"
     implementation("io.noties.markwon:core:$markwonVersion")
+
+    //coil implementation
+    implementation("io.coil-kt:coil-compose:2.6.0")
+
+    //cameraX implementation
+    val cameraXVersion = "1.4.0-beta02"
+    // The following line is optional, as the core library is included indirectly by camera-camera2
+    implementation("androidx.camera:camera-core:${cameraXVersion}")
+    implementation("androidx.camera:camera-camera2:${cameraXVersion}")
+    implementation("androidx.camera:camera-lifecycle:${cameraXVersion}")
+    implementation("androidx.camera:camera-view:${cameraXVersion}")
+    implementation("androidx.camera:camera-extensions:${cameraXVersion}")
 }

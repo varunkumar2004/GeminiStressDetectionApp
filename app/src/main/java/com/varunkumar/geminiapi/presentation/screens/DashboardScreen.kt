@@ -29,12 +29,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,13 +38,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.varunkumar.geminiapi.R
 import com.varunkumar.geminiapi.model.Metric
 import com.varunkumar.geminiapi.presentation.Routes
 import com.varunkumar.geminiapi.presentation.viewModels.AppViewModel
 import com.varunkumar.geminiapi.ui.theme.GeminiApiTheme
-import com.varunkumar.geminiapi.ui.theme.customTopAppBar
+import com.varunkumar.geminiapi.ui.theme.customTopAppBarColors
 import com.varunkumar.geminiapi.utils.generateRandomColor
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -75,7 +69,7 @@ fun DashboardScreen(
             topBar = {
                 CenterAlignedTopAppBar(
                     title = { Text(text = "Summary", fontWeight = FontWeight.Bold) },
-                    colors = customTopAppBar()
+                    colors = customTopAppBarColors()
                 )
             },
             bottomBar = {

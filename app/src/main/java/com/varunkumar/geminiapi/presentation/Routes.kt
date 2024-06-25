@@ -14,4 +14,5 @@ sealed class Routes(val route: String, val title: String, val icon: ImageVector)
     data object Chat : Routes("chat", "Chat", Icons.Default.Chat)
     data object Stats : Routes("stats", "Stats", Icons.Default.QueryStats)
     data object Profile : Routes("profile", "Profile", Icons.Default.Person)
+    data object Welcome : Routes("welcome", "Welcome", Icons.Default.Home)
 }

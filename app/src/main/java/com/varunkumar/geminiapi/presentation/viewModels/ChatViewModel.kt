@@ -32,7 +32,7 @@ class ChatViewModel @Inject constructor(
     // TODO implement savedStateHandle
     private val _state = MutableStateFlow(
         ChatState(
-            message = savedStateHandle["message"] ?: "stan by eminem"
+            message = savedStateHandle["message"] ?: ""
         )
     )
 
