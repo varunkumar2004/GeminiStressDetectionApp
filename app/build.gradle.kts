@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.google.android.libraries.mapsplatform.secrets.gradle.plugin)
     id("com.google.dagger.hilt.android")
     id("kotlin-kapt")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -107,4 +108,10 @@ dependencies {
     implementation("androidx.camera:camera-lifecycle:${cameraXVersion}")
     implementation("androidx.camera:camera-view:${cameraXVersion}")
     implementation("androidx.camera:camera-extensions:${cameraXVersion}")
+
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
+
+    //google firebase
+    implementation("com.google.firebase:firebase-auth:23.0.0")
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
 }

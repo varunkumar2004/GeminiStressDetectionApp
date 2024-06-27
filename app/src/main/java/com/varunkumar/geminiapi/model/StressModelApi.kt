@@ -11,9 +11,9 @@ interface StressModelApi {
     suspend fun getStressLevel(
         @Part("snoring_range") snoringRange: Float,
         @Part("respiration_rate") respirationRate: Float,
-        @Part("temprature") temperature: Float,
-        @Part("blood_oxygen") bloodOxygen: Float,
+        @Part("temprature") temperature: Float = 100f,
+        @Part("blood_oxygen") bloodOxygen: Float = 50f,
         @Part("sleep") sleep: Float,
-        @Part("heart_rate") heartRate: Float
+        @Part("heart_rate") heartRate: Float = 85f
     ): Response<StressLevelResponse>
 }

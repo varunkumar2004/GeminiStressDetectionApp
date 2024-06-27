@@ -1,4 +1,4 @@
-package com.varunkumar.geminiapi.presentation.screens
+package com.varunkumar.geminiapi.presentation.features.chat_feature
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -17,13 +17,16 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.VolumeDown
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -46,11 +49,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -58,10 +59,7 @@ import androidx.compose.ui.unit.dp
 import com.varunkumar.geminiapi.R
 import com.varunkumar.geminiapi.model.ChatMessage
 import com.varunkumar.geminiapi.presentation.UiState
-import com.varunkumar.geminiapi.presentation.viewModels.ChatState
-import com.varunkumar.geminiapi.presentation.viewModels.ChatViewModel
 import com.varunkumar.geminiapi.ui.theme.secondary
-import com.varunkumar.geminiapi.utils.appendSuspend
 import com.varunkumar.geminiapi.utils.formatTimeStamp
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -89,20 +87,17 @@ fun ChatScreen(
     }
 
     Scaffold(
-        modifier = modifier
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = modifier,
         containerColor = bgColor,
         topBar = {
             Column {
                 TopAppBar(
-                    scrollBehavior = scrollBehavior,
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
-                        titleContentColor = Color.Black,
-                        scrolledContainerColor = Color.Transparent
+                        titleContentColor = Color.Black
                     ),
                     navigationIcon = {
-                        IconButton(onClick = { onBackButtonClick() }) {
+                        IconButton(onClick = onBackButtonClick) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Default.ArrowBack,
                                 contentDescription = null
@@ -128,108 +123,51 @@ fun ChatScreen(
             }
         },
         bottomBar = {
-            Column {
-                HorizontalDivider(color = dividerColor)
+            BottomAppBar(
+                containerColor = Color.Transparent,
+                contentColor = Color.Transparent
+            ) {
+                Column {
+                    HorizontalDivider(color = dividerColor)
 
-                OutlinedTextField(
-                    modifier = fModifier
-                        .focusRequester(focusRequester),
-                    shape = shape,
-                    value = state.message,
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedTrailingIconColor = Color.Black,
-                        cursorColor = Color.Black
-                    ),
-                    placeholder = { Text("enter message") },
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
-                    keyboardActions = KeyboardActions {
-                        viewModel.sendPrompt()
-                        keyboardController?.hide()
-                        focusRequester.freeFocus()
-                    },
-                    onValueChange = { viewModel.onMessageChange(it) },
-                    trailingIcon = {
-                        IconButton(
-                            onClick = {
-                                viewModel.sendPrompt()
-                                keyboardController?.hide()
-                                focusRequester.freeFocus()
+                    OutlinedTextField(
+                        modifier = fModifier
+                            .focusRequester(focusRequester),
+                        shape = shape,
+                        value = state.message,
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedTrailingIconColor = Color.Black,
+                            cursorColor = Color.Black
+                        ),
+                        placeholder = { Text("enter message") },
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                        keyboardActions = KeyboardActions {
+                            viewModel.sendPrompt()
+                            keyboardController?.hide()
+                            focusRequester.freeFocus()
+                        },
+                        onValueChange = { viewModel.onMessageChange(it) },
+                        trailingIcon = {
+                            IconButton(
+                                onClick = {
+                                    viewModel.sendPrompt()
+                                    keyboardController?.hide()
+                                    focusRequester.freeFocus()
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Send,
+                                    contentDescription = "Send Prompt"
+                                )
                             }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Send,
-                                contentDescription = null
-                            )
-                        }
-                    },
-                    textStyle = MaterialTheme.typography.bodyMedium
-                )
-
-//            BottomAppBar(
-//                modifier = fModifier,
-//                contentPadding = PaddingValues(horizontal = 0.dp),
-//                windowInsets = WindowInsets(bottom = 16.dp, top = 0.dp),
-//                containerColor = Color.Transparent
-//            ) {
-////                Column {
-////
-////                }
-//                OutlinedTextField(
-//                    shape = shape,
-//                    modifier = fModifier,
-//                    value = state.message,
-//                    colors = customTextFieldColors(),
-//                    placeholder = { Text("enter message") },
-//                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
-//                    keyboardActions = KeyboardActions {
-//                        viewModel.sendPrompt()
-//                        keyboardController?.hide()
-//                    },
-//                    onValueChange = { viewModel.onMessageChange(it) },
-//                    trailingIcon = {
-//                        IconButton(
-//                            onClick = {
-//                                viewModel.sendPrompt()
-//                                keyboardController?.hide()
-//                            }
-//                        ) {
-//                            Icon(imageVector = Icons.Default.Send, contentDescription = null)
-//                        }
-//                    },
-//                    textStyle = MaterialTheme.typography.bodyMedium
-//                )
-//            }
-//            Column(
-//                modifier = fModifier
-//                    .padding(bottom = 10.dp)
-//                    .padding(horizontal = 10.dp)
-//                    .clip(radius)
-//                    .background(secondaryTertiary)
-//            ) {
-//                LazyColumn(
-//                    modifier = Modifier
-//                        .heightIn(max = screenHeightInDp * 0.3f),
-//                ) {
-//                    itemsIndexed(state.questions) { index, question ->
-//                        QuestionSelectItem(
-//                            modifier = fModifier,
-//                            question = question
-//                        ) {
-//                            viewModel.onMessageChange(question)
-//                            focusRequester.captureFocus()
-//                            //TODO change cursor position after click to the end of the text
-//                        }
-////
-////                            if (index != state.questions.size - 1) HorizontalDivider(color = tertiary)
-//
-//                        if (index == state.questions.size - 1) Spacer(modifier = Modifier.height(2.dp))
-//                    }
-//                }
-//
+                        },
+                        textStyle = MaterialTheme.typography.bodyMedium
+                    )
+                }
             }
         }
     ) {
@@ -243,20 +181,20 @@ fun ChatScreen(
                 state = listState,
             ) {
                 itemsIndexed(state.messages) { index, msg ->
-                    val height = 5.dp
-                    val msgColor = if (msg.isBot) Color(0xff4A4458) else Color(0xff3B383E)
-
                     if (index == 0) Spacer(modifier = Modifier.height(10.dp))
 
                     ChatItemMessage(
                         modifier = fModifier,
                         message = msg,
-                        index = index,
-                        viewModel = viewModel,
-                        color = msgColor
+                        state = state,
+                        onSpeakButtonClick = {
+                            if (state.speakText != msg)
+                                viewModel.speakOutText(msg)
+                            else viewModel.onStopSpeak()
+                        }
                     )
 
-                    Spacer(modifier = Modifier.height(height))
+                    Spacer(modifier = Modifier.height(10.dp))
                 }
 
                 item {
@@ -273,42 +211,57 @@ fun ChatScreen(
 fun ChatItemMessage(
     modifier: Modifier = Modifier,
     message: ChatMessage,
-    color: Color,
-    index: Int,
-    viewModel: ChatViewModel
+    state: ChatState,
+    onSpeakButtonClick: () -> Unit,
 ) {
+    val color = if (message.isBot) Color(0xff4A4458) else Color(0xff3B383E)
+    val alignment = if (message.isBot) Alignment.CenterStart else Alignment.CenterEnd
     val maxWidth = (LocalConfiguration.current.screenWidthDp).dp
 
     val textModifier = Modifier
         .clip(RoundedCornerShape(30.dp))
-        .widthIn(max = maxWidth * 0.75f)
+        .widthIn(max = maxWidth * 0.8f)
         .background(color)
         .padding(15.dp, 10.dp)
 
     Box(
         modifier = modifier,
-        contentAlignment = if (message.isBot) Alignment.CenterStart else Alignment.CenterEnd
+        contentAlignment = alignment
     ) {
-        if (message.isBot && index != 0) {
-            val spanned = remember {
-                viewModel.createSpannedText(message.data)
-            }
-
-            Text(
-                modifier = textModifier,
-                text = buildAnnotatedString {
-                    appendSuspend(spanned = spanned)
-                },
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.White
-            )
-        } else {
+        Column {
             Text(
                 modifier = textModifier,
                 text = message.data,
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.White
             )
+
+            Spacer(modifier = Modifier.height(2.dp))
+
+            if (message.isBot) {
+                Row(
+                    modifier = modifier,
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    val icon =
+                        if (state.speakText == message) Icons.Default.Pause else Icons.Default.VolumeDown
+
+                    Icon(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .clickable { onSpeakButtonClick() },
+                        imageVector = icon,
+                        tint = Color.DarkGray,
+                        contentDescription = null
+                    )
+
+                    Text(
+                        text = formatTimeStamp(message.timestamp),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
         }
     }
 }
@@ -372,20 +325,7 @@ fun ProgressText(
             }
         }
 
-        else -> {
-            val time = when (state) {
-                is UiState.Success -> state.timestamp
-                else -> System.currentTimeMillis()
-            }
-
-            Text(
-                modifier = modifier,
-                color = MaterialTheme.colorScheme.tertiary,
-                style = MaterialTheme.typography.bodySmall,
-                textAlign = TextAlign.Center,
-                text = formatTimeStamp(time)
-            )
-        }
+        else -> {}
     }
 }
 

@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.varunkumar.geminiapi" />
+                  <option name="mobileSdkAppId" value="1:678975458265:android:ba14c27093ddba028ee7c8" />
+                  <option name="projectId" value="signinstressdetection" />
+                  <option name="projectNumber" value="678975458265" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

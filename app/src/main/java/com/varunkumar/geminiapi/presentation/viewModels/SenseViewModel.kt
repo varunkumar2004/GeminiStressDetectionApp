@@ -52,25 +52,27 @@ class SenseViewModel @Inject constructor(
                 }
             }
 
-            is HealthSensors.BloodOxygenSensors -> {
-                _state.update {
-                    it.copy(bloodOxygen = newValue)
-                }
-            }
-
-            is HealthSensors.HeartRateSensors -> _state.update {
-                it.copy(heartRate = newValue)
-            }
-
-            is HealthSensors.HoursOfSleepSensors -> {
-                _state.update {
-                    it.copy(sleep = newValue)
-                }
-            }
-
-            is HealthSensors.TemperatureSensors -> _state.update {
-                it.copy(temperature = newValue)
-            }
+            else -> {}
+//
+//            is HealthSensors.BloodOxygenSensors -> {
+//                _state.update {
+//                    it.copy(bloodOxygen = newValue)
+//                }
+//            }
+//
+//            is HealthSensors.HeartRateSensors -> _state.update {
+//                it.copy(heartRate = newValue)
+//            }
+//
+//            is HealthSensors.HoursOfSleepSensors -> {
+//                _state.update {
+//                    it.copy(sleep = newValue)
+//                }
+//            }
+//
+//            is HealthSensors.TemperatureSensors -> _state.update {
+//                it.copy(temperature = newValue)
+//            }
         }
     }
 

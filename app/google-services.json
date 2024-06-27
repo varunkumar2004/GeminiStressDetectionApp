@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "678975458265",
+    "project_id": "signinstressdetection",
+    "storage_bucket": "signinstressdetection.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:678975458265:android:ba14c27093ddba028ee7c8",
+        "android_client_info": {
+          "package_name": "com.varunkumar.geminiapi"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "678975458265-dflr635v9cm39qh910ka0pj5gnfa0skr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.varunkumar.geminiapi",
+            "certificate_hash": "4630cd5af832e24c077f46a5f39c29191cf6fa0f"
+          }
+        },
+        {
+          "client_id": "678975458265-nkmopvr9nunacm43m7m6sico19l5akeh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCk80yOSsnxYsKdubWDD8Ax6N1cmMMPXW8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "678975458265-nkmopvr9nunacm43m7m6sico19l5akeh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

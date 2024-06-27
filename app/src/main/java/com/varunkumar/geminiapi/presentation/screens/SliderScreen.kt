@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.varunkumar.geminiapi.presentation.HealthSensors
+import com.varunkumar.geminiapi.presentation.features.home_feature.HomeViewModel
 import com.varunkumar.geminiapi.presentation.viewModels.SenseViewModel
 import com.varunkumar.geminiapi.utils.getScreenResolutionDp
 
@@ -44,59 +45,59 @@ fun SliderScreen(
     val fModifier = Modifier.fillMaxWidth()
     val (maxWidth, _) = getScreenResolutionDp()
 
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Column(
-            modifier = Modifier
-                .width(maxWidth),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
-            CustomSlider(
-                modifier = fModifier,
-                sensor = HealthSensors.SnoringRateSensors,
-                viewModel = viewModel,
-                sliderPosition = state.snoringRate
-            )
-            CustomSlider(
-                modifier = fModifier,
-                sensor = HealthSensors.HoursOfSleepSensors,
-                viewModel = viewModel,
-                sliderPosition = state.sleep
-            )
-            CustomSlider(
-                modifier = fModifier,
-                sensor = HealthSensors.RespirationRateSensors,
-                viewModel = viewModel,
-                sliderPosition = state.respirationRate
-            )
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Row(
-            modifier = fModifier,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = "Extremely Negative",
-                style = MaterialTheme.typography.bodySmall
-            )
-            Text(
-                text = "Extremely Positive",
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
-    }
+//    Column(
+//        modifier = modifier,
+//        verticalArrangement = Arrangement.Center,
+//        horizontalAlignment = Alignment.CenterHorizontally
+//    ) {
+//        Column(
+//            modifier = Modifier
+//                .width(maxWidth),
+//            verticalArrangement = Arrangement.spacedBy(20.dp)
+//        ) {
+//            CustomSlider(
+//                modifier = fModifier,
+//                sensor = HealthSensors.SnoringRateSensors,
+//                viewModel = viewModel,
+//                sliderPosition = state.snoringRate
+//            )
+//            CustomSlider(
+//                modifier = fModifier,
+//                sensor = HealthSensors.HoursOfSleepSensors,
+//                viewModel = viewModel,
+//                sliderPosition = state.sleep
+//            )
+//            CustomSlider(
+//                modifier = fModifier,
+//                sensor = HealthSensors.RespirationRateSensors,
+//                viewModel = viewModel,
+//                sliderPosition = state.respirationRate
+//            )
+//        }
+//
+//        Spacer(modifier = Modifier.height(10.dp))
+//
+//        Row(
+//            modifier = fModifier,
+//            horizontalArrangement = Arrangement.SpaceBetween
+//        ) {
+//            Text(
+//                text = "Extremely Negative",
+//                style = MaterialTheme.typography.bodySmall
+//            )
+//            Text(
+//                text = "Extremely Positive",
+//                style = MaterialTheme.typography.bodySmall
+//            )
+//        }
+//    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomSlider(
     modifier: Modifier = Modifier,
-    viewModel: SenseViewModel,
+    viewModel: HomeViewModel,
     sliderPosition: Float,
     sensor: HealthSensors
 ) {
@@ -123,11 +124,10 @@ fun CustomSlider(
         ) {
             Slider(
                 modifier = modifier,
-                //TODO do this width dynamically
                 steps = steps,
                 value = sliderPosition,
                 onValueChange = { value ->
-                    viewModel.onSliderChange(value, sensor)
+                    viewModel.sliderChange(value, sensor)
                 },
                 valueRange = sensor.low..sensor.high,
                 colors = SliderDefaults.colors(
@@ -168,7 +168,6 @@ fun CustomSlider(
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
-
                 }
             )
         }

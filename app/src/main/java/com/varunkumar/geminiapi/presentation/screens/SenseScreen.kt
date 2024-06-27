@@ -7,7 +7,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.launch
@@ -42,14 +41,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
 import com.varunkumar.geminiapi.presentation.HealthSensors
-import com.varunkumar.geminiapi.presentation.viewModels.SenseViewModel
+import com.varunkumar.geminiapi.presentation.features.home_feature.HomeState
+import com.varunkumar.geminiapi.presentation.features.home_feature.HomeViewModel
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -58,10 +56,10 @@ import java.io.OutputStream
 @Composable
 fun SenseScreen(
     modifier: Modifier = Modifier,
-    senseViewModel: SenseViewModel,
+    viewModel: HomeViewModel,
     onDoneButtonClick: () -> Unit
 ) {
-    val state by senseViewModel.state.collectAsState()
+    val state by viewModel.state.collectAsState()
     val context = LocalContext.current
 
     val cameraLauncher = rememberLauncherForActivityResult(
@@ -69,27 +67,26 @@ fun SenseScreen(
     ) { bitmap ->
         bitmap?.let {
             val uri = saveImageToExternalStorage(context, it)
-            senseViewModel.onChangeImageUri(uri)
+            viewModel.onChangeImageUri(uri)
         }
     }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
-        senseViewModel.onChangeImageUri(uri)
+        viewModel.onChangeImageUri(uri)
     }
 
     val shape = RoundedCornerShape(20.dp)
-    val bgColor = Color(0xffF2DBCE)
     val fModifier = Modifier.fillMaxWidth()
 
     Scaffold(
         modifier = modifier,
-        containerColor = bgColor,
+        containerColor = Color(0xffF2DBCE),
         topBar = {
             TopAppBar(
                 modifier = fModifier,
-                colors = TopAppBarDefaults.largeTopAppBarColors(
+                colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent
                 ),
                 title = {
@@ -103,7 +100,7 @@ fun SenseScreen(
         },
         bottomBar = {
             BottomAppBar(
-                contentPadding = PaddingValues(horizontal = 10.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp),
                 containerColor = Color.Transparent
             ) {
                 Button(
@@ -114,12 +111,14 @@ fun SenseScreen(
                         contentColor = Color.White
                     ),
                     onClick = {
-                        senseViewModel.predictStress()
-                        onDoneButtonClick()
+//                        if (state.imageUri != null) {
+                            viewModel.predictStress()
+                            onDoneButtonClick()
+//                        }
                     }
                 ) {
                     Text(
-                        text = "Next",
+                        text = "Predict",
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold
                     )
@@ -133,171 +132,133 @@ fun SenseScreen(
                 .padding(it),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Box(
+            TopImageDetectionBox(
                 modifier = fModifier
-                    .weight(0.7f)
+                    .weight(0.6f)
                     .clip(shape)
                     .background(if (state.imageUri == null) Color.LightGray else Color.Black)
                     .clickable {
                         cameraLauncher.launch()
                     },
-                contentAlignment = Alignment.Center
-            ) {
-                if (state.imageUri != null) {
-                    AsyncImage(
-                        modifier = fModifier,
-                        model = state.imageUri,
-                        contentDescription = "Image"
-                    )
-                } else {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.AddAPhoto,
-                            tint = MaterialTheme.colorScheme.surface,
-                            contentDescription = null
-                        )
-                        Spacer(modifier = Modifier.height(10.dp))
-                        Text(
-                            color = MaterialTheme.colorScheme.surface,
-                            text = "Photo is necessary for stress evaluation.",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
-            }
+                state = state
+            )
 
-            Box(
+            BottomSliderBox(
                 modifier = modifier
-                    .weight(0.3f),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-//                    Row(
-//                        modifier = fModifier,
-//                        horizontalArrangement = Arrangement.SpaceBetween
-//                    ) {
-//                        Text(
-//                            text = "Extremely Negative",
-//                            style = MaterialTheme.typography.bodySmall
-//                        )
-//                        Text(
-//                            text = "Neutral",
-//                            style = MaterialTheme.typography.bodySmall
-//                        )
-//                        Text(
-//                            text = "Extremely Positive",
-//                            style = MaterialTheme.typography.bodySmall
-//                        )
-//                    }
-
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        CustomSlider(
-                            modifier = fModifier,
-                            viewModel = senseViewModel,
-                            sliderPosition = state.snoringRate,
-                            sensor = HealthSensors.SnoringRateSensors
-                        )
-
-                        CustomSlider(
-                            modifier = fModifier,
-                            viewModel = senseViewModel,
-                            sliderPosition = state.respirationRate,
-                            sensor = HealthSensors.RespirationRateSensors
-                        )
-                    }
-                }
-            }
+                    .weight(0.4f),
+                viewModel = viewModel,
+                state = state
+            )
         }
-
-//        Column(
-//            modifier = modifier
-//                .padding(16.dp)
-//                .padding(it)
-//        ) {
-//            AnimatedVisibility(
-//                visible = state.isImageScreen,
-//                enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
-//                exit = slideOutHorizontally(targetOffsetX = { -it }) + fadeOut()
-//            ) {
-//                ImageDetectScreen(
-//                    modifier = modifier,
-//                    gradient = gradient,
-//                    onNextButtonClick = senseViewModel::onScreenChange
-//                )
-//            }
-//
-//            AnimatedVisibility(
-//                visible = !state.isImageScreen,
-//                enter = slideInHorizontally(initialOffsetX = { -it }) + fadeIn(),
-//                exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut()
-//            ) {
-//                SliderScreen(
-//                    modifier = modifier,
-//                    viewModel = senseViewModel
-//                )
-//            }
-//        }
     }
 }
 
-//private fun saveImageToExternalStorage(context: Context, bitmap: Bitmap): Uri? {
-//    val filename = "${System.currentTimeMillis()}.jpg"
-//    var fos: OutputStream? = null
-//    var imageUri: Uri? = null
-//
-//    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-//        context.contentResolver?.also { resolver ->
-//            val contentValues = ContentValues().apply {
-//                put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
-//                put(MediaStore.MediaColumns.MIME_TYPE, "image/jpg")
-//                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
-//            }
-//            imageUri =
-//                resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-//            fos = imageUri?.let {
-//                resolver.openOutputStream(it)
-//            }
-//        }
-//    } else {
-//        val imagesDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-//        val image = File(imagesDir, filename)
-//        fos = FileOutputStream(image)
-//        imageUri = Uri.fromFile(image)
-//    }
-//
-//    fos?.use {
-//        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
-//    }
-//
-//    return imageUri
-//}
+@Composable
+private fun TopImageDetectionBox(
+    modifier: Modifier = Modifier,
+    state: HomeState
+) {
+    val fModifier = Modifier.fillMaxWidth()
+
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        if (state.imageUri != null) {
+            AsyncImage(
+                modifier = fModifier,
+                model = state.imageUri,
+                contentDescription = "Image"
+            )
+        } else {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.AddAPhoto,
+                    tint = MaterialTheme.colorScheme.surface,
+                    contentDescription = null
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    color = MaterialTheme.colorScheme.surface,
+                    text = "Photo is necessary for stress evaluation.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun BottomSliderBox(
+    modifier: Modifier = Modifier,
+    viewModel: HomeViewModel,
+    state: HomeState
+) {
+    val fModifier = Modifier.fillMaxWidth()
+
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            CustomSlider(
+                modifier = fModifier,
+                viewModel = viewModel,
+                sliderPosition = state.sensorValues.snoringRate,
+                sensor = HealthSensors.SnoringRateSensors
+            )
+
+            CustomSlider(
+                modifier = fModifier,
+                viewModel = viewModel,
+                sliderPosition = state.sensorValues.sleepHours,
+                sensor = HealthSensors.HoursOfSleepSensors
+            )
+
+            CustomSlider(
+                modifier = fModifier,
+                viewModel = viewModel,
+                sliderPosition = state.sensorValues.respirationRate,
+                sensor = HealthSensors.RespirationRateSensors
+            )
+        }
+    }
+}
 
 private fun saveImageToExternalStorage(context: Context, bitmap: Bitmap): Uri? {
-    return try {
-        val filesDir = context.filesDir
-        val file = File(filesDir, "image.jpg") // Create a file to store the image
-        val outputStream = FileOutputStream(file)
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream) // Save the bitmap to the file
-        outputStream.flush()
-        outputStream.close()
-        val result = FileProvider.getUriForFile(
-            context,
-            "com.varunkumar.geminiapi.fileprovider", // Replace with your app's authority
-            file
-        )
-        Log.d("image", "Error saving image: ${result.toString()}")
-        result
-    } catch (e: Exception) {
-        // Handle exceptions, e.g., file creation or saving errors
-        Log.d("image", "Error saving image: ${e.message}")
-        null
+    val filename = "${System.currentTimeMillis()}.png"
+    var fos: OutputStream? = null
+    var imageUri: Uri? = null
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        context.contentResolver?.also { resolver ->
+            val contentValues = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
+                put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
+                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
+            }
+            imageUri =
+                resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+            fos = imageUri?.let {
+                resolver.openOutputStream(it)
+            }
+        }
+    } else {
+        val imagesDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        val image = File(imagesDir, filename)
+        fos = FileOutputStream(image)
+        imageUri = Uri.fromFile(image)
     }
+
+    fos?.use {
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
+    }
+
+    return imageUri
 }
 
 @Composable

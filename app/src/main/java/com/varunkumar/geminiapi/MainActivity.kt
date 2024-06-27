@@ -1,37 +1,55 @@
 package com.varunkumar.geminiapi
 
 import android.Manifest
-import android.content.ContentValues
-import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.os.Environment
-import android.provider.MediaStore
+import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.varunkumar.geminiapi.presentation.Navigation
-import com.varunkumar.geminiapi.presentation.screens.ChatScreen
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.google.android.gms.auth.api.identity.Identity
+import com.varunkumar.geminiapi.presentation.Routes
+import com.varunkumar.geminiapi.presentation.features.home_feature.HomeScreen
+import com.varunkumar.geminiapi.presentation.features.home_feature.HomeViewModel
+import com.varunkumar.geminiapi.presentation.features.profile_feature.ProfileScreen
+import com.varunkumar.geminiapi.presentation.features.sign_in_feature.GoogleAuthClient
+import com.varunkumar.geminiapi.presentation.features.sign_in_feature.SignInScreen
+import com.varunkumar.geminiapi.presentation.features.sign_in_feature.SignInViewModel
+import com.varunkumar.geminiapi.presentation.features.chat_feature.ChatScreen
+import com.varunkumar.geminiapi.presentation.screens.SenseScreen
+import com.varunkumar.geminiapi.presentation.viewModels.AppViewModel
+import com.varunkumar.geminiapi.presentation.features.chat_feature.ChatViewModel
+import com.varunkumar.geminiapi.presentation.viewModels.LoginViewModel
 import com.varunkumar.geminiapi.ui.theme.GeminiApiTheme
 import dagger.hilt.android.AndroidEntryPoint
-import io.noties.markwon.Markwon
-import java.io.File
-import java.io.FileOutputStream
-import java.io.OutputStream
-import javax.inject.Inject
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private val googleAuthClient by lazy {
+        GoogleAuthClient(
+            context = applicationContext,
+            oneTapClient = Identity.getSignInClient(applicationContext)
+        )
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         //TODO enable this later
         enableEdgeToEdge()
 
@@ -41,9 +59,135 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             GeminiApiTheme {
-                Navigation(
-                    modifier = Modifier.fillMaxSize()
-                )
+                val modifier = Modifier.fillMaxSize()
+                val navController = rememberNavController()
+                val loginViewModel = hiltViewModel<LoginViewModel>()
+                val chatViewModel = hiltViewModel<ChatViewModel>()
+                val appViewModel = hiltViewModel<AppViewModel>()
+                val homeViewModel = hiltViewModel<HomeViewModel>()
+                val signInViewModel = hiltViewModel<SignInViewModel>()
+
+                NavHost(navController = navController, startDestination = Routes.Login.route) {
+                    composable(Routes.Welcome.route) {
+                        SenseScreen(
+                            modifier = modifier,
+                            viewModel = homeViewModel,
+                            onDoneButtonClick = {
+                                navController.navigate(Routes.Home.route)
+                            }
+                        )
+                    }
+
+                    composable(Routes.Home.route) {
+                        HomeScreen(
+                            modifier = modifier,
+                            userData = googleAuthClient.getSignedInUser(),
+                            navController = navController,
+                            viewModel = homeViewModel,
+                            appViewModel = appViewModel,
+                            onImageClick = {
+                                navController.navigate(Routes.Profile.route)
+                            }
+                        )
+                    }
+
+                    composable(Routes.Stats.route) {
+//            SliderScreen(
+//                modifier = modifier,
+//                viewModel = senseViewModel,
+//                onSaveButtonClick = {},
+//                onCancelButtonClick = {
+//                    navController.navigateUp()
+//                }
+//            )
+                    }
+
+                    composable(Routes.Login.route) {
+                        val state by signInViewModel.state.collectAsStateWithLifecycle()
+
+                        val launcher =
+                            rememberLauncherForActivityResult(contract = ActivityResultContracts.StartIntentSenderForResult()) { result ->
+                                if (result.resultCode == RESULT_OK) {
+                                    lifecycleScope.launch {
+                                        val signInResult = googleAuthClient.signInWithIntent(
+                                            intent = result.data ?: return@launch
+                                        )
+                                        signInViewModel.onSignInResult(signInResult)
+                                    }
+                                }
+                            }
+
+                        LaunchedEffect(state.isSignInSuccessful) {
+                            if (state.isSignInSuccessful) {
+                                Toast.makeText(
+                                    applicationContext,
+                                    "Sign in successful",
+                                    Toast.LENGTH_LONG
+                                ).show()
+
+                                navController.navigate(Routes.Home.route)
+                            }
+                        }
+
+                        SignInScreen(
+                            modifier = modifier,
+                            state = state,
+                            onSignInClick = {
+                                lifecycleScope.launch {
+                                    val signInIntentSender = googleAuthClient.signIn()
+                                    launcher.launch(
+                                        IntentSenderRequest.Builder(
+                                            signInIntentSender ?: return@launch
+                                        ).build()
+                                    )
+                                }
+                            }
+                        )
+
+//            LoginScreen(
+//                modifier = modifier,
+//                viewModel = loginViewModel,
+//                onLoginButtonClick = {
+//                    navController.navigate(Routes.Home.route)
+//                }
+//            )
+                    }
+
+                    composable(Routes.Profile.route) {
+//                        DashboardScreen(
+//                            modifier = modifier,
+//                            navController = navController,
+//                            appViewModel = appViewModel
+//                        )
+
+                        ProfileScreen(
+                            userData = googleAuthClient.getSignedInUser(),
+                            onSignOut = {
+                                lifecycleScope.launch {
+                                    googleAuthClient.signOut()
+
+                                    Toast.makeText(
+                                        applicationContext,
+                                        "Signed Out",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+
+                                    navController.popBackStack()
+                                }
+                            }
+                        )
+                    }
+
+                    composable(Routes.Chat.route) {
+                        ChatScreen(
+                            modifier = modifier,
+                            viewModel = chatViewModel,
+                            onBackButtonClick = {
+                                navController.navigateUp()
+                            }
+                        )
+                    }
+                }
             }
         }
     }

@@ -12,8 +12,5 @@ sealed class HealthSensors(
 ) {
     data object SnoringRateSensors : HealthSensors("Snoring Rate", 0f, 100f, null)
     data object RespirationRateSensors : HealthSensors("Respiration Rate", 0f, 100f)
-    data object TemperatureSensors : HealthSensors("Temperature", 0f, 100f)
-    data object BloodOxygenSensors : HealthSensors("Blood Oxygen", 0f, 100f)
     data object HoursOfSleepSensors : HealthSensors("Sleep", 0f, 100f)
-    data object HeartRateSensors : HealthSensors("Heart Rate", 0f, 100f)
 }

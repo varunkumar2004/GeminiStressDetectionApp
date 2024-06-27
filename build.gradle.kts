@@ -9,5 +9,6 @@ plugins {
 buildscript {
     dependencies {
         classpath("com.google.dagger:hilt-android-gradle-plugin:2.49")
+        classpath("com.google.gms:google-services:4.3.15")
     }
 }
