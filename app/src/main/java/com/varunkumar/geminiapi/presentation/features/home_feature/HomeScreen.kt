@@ -1,5 +1,6 @@
 package com.varunkumar.geminiapi.presentation.features.home_feature
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -58,7 +59,6 @@ fun HomeScreen(
     navController: NavHostController,
     userData: UserData?,
     viewModel: HomeViewModel,
-    appViewModel: AppViewModel,
     onImageClick: () -> Unit
 ) {
     val fModifier = Modifier.fillMaxWidth()
@@ -121,25 +121,27 @@ fun HomeScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                Column(
-                    modifier = Modifier
-                        .weight(0.7f),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Text(
-                        text = "Recommendations",
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    )
+                AnimatedVisibility(visible = state.stateResult is Result.Success) {
+                    Column(
+                        modifier = Modifier
+                            .weight(0.7f),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text(
+                            text = "Recommendations",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        )
 
-                    ArticleCard(
-                        modifier = fModifier
-                    )
+                        ArticleCard(
+                            modifier = fModifier
+                        )
 
-                    ArticleCard(
-                        modifier = fModifier
-                    )
+                        ArticleCard(
+                            modifier = fModifier
+                        )
+                    }
                 }
             }
         }

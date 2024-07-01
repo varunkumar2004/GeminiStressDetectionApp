@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.ai.client.generativeai.Chat
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
 import com.varunkumar.geminiapi.model.ChatMessage
@@ -26,11 +27,12 @@ import javax.inject.Inject
 @HiltViewModel
 class ChatViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val generativeModel: GenerativeModel,
+    private val chat: Chat,
     private val markwon: Markwon,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     // TODO implement savedStateHandle
+
     private var textToSpeech: TextToSpeech? = null
 
     private val _state = MutableStateFlow(
@@ -97,11 +99,11 @@ class ChatViewModel @Inject constructor(
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val response = generativeModel
-                    .generateContent(
-                        content {
-                            text(message)
-                        }
+                val response = chat.sendMessage(
+                    message
+//                        content {
+//                            text(message)
+//                        }
                     )
 
                 response.text?.let { outputContent ->

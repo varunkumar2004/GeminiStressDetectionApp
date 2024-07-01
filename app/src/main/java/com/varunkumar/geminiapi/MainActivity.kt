@@ -1,6 +1,7 @@
 package com.varunkumar.geminiapi
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Toast
@@ -10,9 +11,19 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -38,16 +49,14 @@ import com.varunkumar.geminiapi.presentation.viewModels.LoginViewModel
 import com.varunkumar.geminiapi.ui.theme.GeminiApiTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private val googleAuthClient by lazy {
-        GoogleAuthClient(
-            context = applicationContext,
-            oneTapClient = Identity.getSignInClient(applicationContext)
-        )
-    }
+    @Inject
+    lateinit var googleAuthClient: GoogleAuthClient
 
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //TODO enable this later
@@ -67,31 +76,45 @@ class MainActivity : ComponentActivity() {
                 val homeViewModel = hiltViewModel<HomeViewModel>()
                 val signInViewModel = hiltViewModel<SignInViewModel>()
 
-                NavHost(navController = navController, startDestination = Routes.Login.route) {
-                    composable(Routes.Welcome.route) {
-                        SenseScreen(
-                            modifier = modifier,
-                            viewModel = homeViewModel,
-                            onDoneButtonClick = {
-                                navController.navigate(Routes.Home.route)
-                            }
-                        )
-                    }
+                val snackBarHostState = remember {
+                    SnackbarHostState()
+                }
 
-                    composable(Routes.Home.route) {
-                        HomeScreen(
-                            modifier = modifier,
-                            userData = googleAuthClient.getSignedInUser(),
+                Scaffold(
+                    snackbarHost = {
+//                        Snackbar(snackbarData = snackBarHostState.currentSnackbarData)
+                    }
+                ) {
+                    Column(
+                        modifier = Modifier
+                    ) {
+                        NavHost(
                             navController = navController,
-                            viewModel = homeViewModel,
-                            appViewModel = appViewModel,
-                            onImageClick = {
-                                navController.navigate(Routes.Profile.route)
+                            startDestination = Routes.Login.route
+                        ) {
+                            composable(Routes.Welcome.route) {
+                                SenseScreen(
+                                    modifier = modifier,
+                                    viewModel = homeViewModel,
+                                    onDoneButtonClick = {
+                                        navController.navigate(Routes.Home.route)
+                                    }
+                                )
                             }
-                        )
-                    }
 
-                    composable(Routes.Stats.route) {
+                            composable(Routes.Home.route) {
+                                HomeScreen(
+                                    modifier = modifier,
+                                    userData = googleAuthClient.getSignedInUser(),
+                                    navController = navController,
+                                    viewModel = homeViewModel,
+                                    onImageClick = {
+                                        navController.navigate(Routes.Profile.route)
+                                    }
+                                )
+                            }
+
+                            composable(Routes.Stats.route) {
 //            SliderScreen(
 //                modifier = modifier,
 //                viewModel = senseViewModel,
@@ -100,49 +123,51 @@ class MainActivity : ComponentActivity() {
 //                    navController.navigateUp()
 //                }
 //            )
-                    }
+                            }
 
-                    composable(Routes.Login.route) {
-                        val state by signInViewModel.state.collectAsStateWithLifecycle()
+                            composable(Routes.Login.route) {
+                                val state by signInViewModel.state.collectAsStateWithLifecycle()
 
-                        val launcher =
-                            rememberLauncherForActivityResult(contract = ActivityResultContracts.StartIntentSenderForResult()) { result ->
-                                if (result.resultCode == RESULT_OK) {
-                                    lifecycleScope.launch {
-                                        val signInResult = googleAuthClient.signInWithIntent(
-                                            intent = result.data ?: return@launch
-                                        )
-                                        signInViewModel.onSignInResult(signInResult)
+                                val launcher =
+                                    rememberLauncherForActivityResult(contract = ActivityResultContracts.StartIntentSenderForResult()) { result ->
+                                        if (result.resultCode == RESULT_OK) {
+                                            lifecycleScope.launch {
+                                                val signInResult =
+                                                    googleAuthClient.signInWithIntent(
+                                                        intent = result.data ?: return@launch
+                                                    )
+                                                signInViewModel.onSignInResult(signInResult)
+                                            }
+                                        }
+                                    }
+
+                                LaunchedEffect(state.isSignInSuccessful) {
+                                    if (state.isSignInSuccessful) {
+                                        lifecycleScope.launch {
+                                            snackBarHostState.showSnackbar(
+                                                message = "Sign in successful",
+                                                duration = SnackbarDuration.Short
+                                            )
+                                        }
+
+                                        navController.navigate(Routes.Home.route)
                                     }
                                 }
-                            }
 
-                        LaunchedEffect(state.isSignInSuccessful) {
-                            if (state.isSignInSuccessful) {
-                                Toast.makeText(
-                                    applicationContext,
-                                    "Sign in successful",
-                                    Toast.LENGTH_LONG
-                                ).show()
-
-                                navController.navigate(Routes.Home.route)
-                            }
-                        }
-
-                        SignInScreen(
-                            modifier = modifier,
-                            state = state,
-                            onSignInClick = {
-                                lifecycleScope.launch {
-                                    val signInIntentSender = googleAuthClient.signIn()
-                                    launcher.launch(
-                                        IntentSenderRequest.Builder(
-                                            signInIntentSender ?: return@launch
-                                        ).build()
-                                    )
-                                }
-                            }
-                        )
+                                SignInScreen(
+                                    modifier = modifier,
+                                    state = state,
+                                    onSignInClick = {
+                                        lifecycleScope.launch {
+                                            val signInIntentSender = googleAuthClient.signIn()
+                                            launcher.launch(
+                                                IntentSenderRequest.Builder(
+                                                    signInIntentSender ?: return@launch
+                                                ).build()
+                                            )
+                                        }
+                                    }
+                                )
 
 //            LoginScreen(
 //                modifier = modifier,
@@ -151,41 +176,41 @@ class MainActivity : ComponentActivity() {
 //                    navController.navigate(Routes.Home.route)
 //                }
 //            )
-                    }
+                            }
 
-                    composable(Routes.Profile.route) {
+                            composable(Routes.Profile.route) {
 //                        DashboardScreen(
 //                            modifier = modifier,
 //                            navController = navController,
 //                            appViewModel = appViewModel
 //                        )
 
-                        ProfileScreen(
-                            userData = googleAuthClient.getSignedInUser(),
-                            onSignOut = {
-                                lifecycleScope.launch {
-                                    googleAuthClient.signOut()
+                                ProfileScreen(
+                                    userData = googleAuthClient.getSignedInUser(),
+                                    onSignOut = {
+                                        lifecycleScope.launch {
+                                            googleAuthClient.signOut()
 
-                                    Toast.makeText(
-                                        applicationContext,
-                                        "Signed Out",
-                                        Toast.LENGTH_LONG
-                                    ).show()
-
-                                    navController.popBackStack()
-                                }
+                                            Toast.makeText(
+                                                applicationContext,
+                                                "Signed Out",
+                                                Toast.LENGTH_LONG
+                                            ).show()
+                                        }
+                                    }
+                                )
                             }
-                        )
-                    }
 
-                    composable(Routes.Chat.route) {
-                        ChatScreen(
-                            modifier = modifier,
-                            viewModel = chatViewModel,
-                            onBackButtonClick = {
-                                navController.navigateUp()
+                            composable(Routes.Chat.route) {
+                                ChatScreen(
+                                    modifier = modifier,
+                                    viewModel = chatViewModel,
+                                    onBackButtonClick = {
+                                        navController.navigateUp()
+                                    }
+                                )
                             }
-                        )
+                        }
                     }
                 }
             }

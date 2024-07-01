@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.varunkumar.geminiapi.model.StressModelApi
 import com.varunkumar.geminiapi.presentation.HealthSensors
-import com.varunkumar.geminiapi.presentation.Routes
 import com.varunkumar.geminiapi.utils.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -76,13 +75,6 @@ class HomeViewModel @Inject constructor(
         }
     }
 }
-
-data class HomeState(
-    val stateResult: Result<String> = Result.Idle(),
-    val selectedRoute: Routes = Routes.Home,
-    val sensorValues: SensorValues = SensorValues(),
-    val imageUri: Uri? = null
-)
 
 data class SensorValues(
     var snoringRate: Float = 50f,
